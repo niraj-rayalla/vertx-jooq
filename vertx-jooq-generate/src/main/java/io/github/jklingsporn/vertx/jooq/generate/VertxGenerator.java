@@ -30,7 +30,7 @@ import java.util.function.Function;
  * Besides these method there is also a constructor generated which takes a <code>JsonObject</code>.
  * It also generates DAOs which implement <code>VertxDAO</code> and allow you to execute CRUD-operations asynchronously.
  */
-public abstract class VertxGenerator extends KotlinGenerator {
+public abstract class VertxGenerator extends JavaGenerator {
 
     private static final JooqLogger logger = JooqLogger.getLogger(VertxGenerator.class);
 
