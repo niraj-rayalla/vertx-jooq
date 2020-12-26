@@ -6,6 +6,7 @@ import io.github.jklingsporn.vertx.jooq.generate.converter.SomeJsonPojoConverter
 import io.github.jklingsporn.vertx.jooq.shared.postgres.JSONBToJsonObjectConverter;
 import io.vertx.core.json.JsonObject;
 import org.jooq.SQLDialect;
+import org.jooq.codegen.VertxGeneratorStrategy;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.meta.jaxb.Configuration;
 import org.jooq.meta.jaxb.ForcedType;

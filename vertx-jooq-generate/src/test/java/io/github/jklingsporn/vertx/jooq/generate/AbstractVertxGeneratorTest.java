@@ -1,6 +1,7 @@
 package io.github.jklingsporn.vertx.jooq.generate;
 
 import org.jooq.codegen.GenerationTool;
+import org.jooq.codegen.VertxGeneratorStrategy;
 import org.jooq.meta.jaxb.Configuration;
 import org.jooq.meta.jaxb.Logging;
 import org.jooq.meta.jaxb.OnError;

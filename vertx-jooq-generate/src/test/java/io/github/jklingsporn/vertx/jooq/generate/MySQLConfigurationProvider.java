@@ -1,6 +1,7 @@
 package io.github.jklingsporn.vertx.jooq.generate;
 
 import org.jooq.SQLDialect;
+import org.jooq.codegen.VertxGeneratorStrategy;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.meta.jaxb.Configuration;
 import org.jooq.meta.jaxb.Jdbc;

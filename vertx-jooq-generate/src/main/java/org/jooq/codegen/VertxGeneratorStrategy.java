@@ -1,9 +1,7 @@
-package io.github.jklingsporn.vertx.jooq.generate;
+package org.jooq.codegen;
 
 import io.github.jklingsporn.vertx.jooq.shared.internal.VertxPojo;
-import org.jooq.codegen.DefaultGeneratorStrategy;
 import org.jooq.meta.Definition;
-import org.jooq.codegen.GeneratorStrategy;
 import org.jooq.meta.TypedElementDefinition;
 
 import java.io.File;
@@ -14,7 +12,7 @@ import java.util.Locale;
 /**
  * Created by jensklingsporn on 08.02.18.
  */
-public abstract class VertxGeneratorStrategy implements GeneratorStrategy {
+public class VertxGeneratorStrategy implements GeneratorStrategy {
 
     private final GeneratorStrategy delegate;
 
@@ -203,6 +201,16 @@ public abstract class VertxGeneratorStrategy implements GeneratorStrategy {
     @Override
     public void setTargetLocale(Locale locale) {
         delegate.setTargetLocale(locale);
+    }
+
+    @Override
+    public AbstractGenerator.Language getTargetLanguage() {
+        return delegate.getTargetLanguage();
+    }
+
+    @Override
+    public void setTargetLanguage(AbstractGenerator.Language language) {
+        delegate.setTargetLanguage(language);
     }
 
     @Override
