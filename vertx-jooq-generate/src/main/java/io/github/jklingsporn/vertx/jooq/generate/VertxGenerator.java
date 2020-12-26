@@ -14,6 +14,7 @@ import org.jooq.Record;
 import org.jooq.codegen.GeneratorStrategy;
 import org.jooq.codegen.JavaGenerator;
 import org.jooq.codegen.JavaWriter;
+import org.jooq.codegen.KotlinGenerator;
 import org.jooq.impl.SQLDataType;
 import org.jooq.meta.*;
 import org.jooq.tools.JooqLogger;
@@ -32,7 +33,7 @@ import java.util.function.Function;
  * Besides these method there is also a constructor generated which takes a <code>JsonObject</code>.
  * It also generates DAOs which implement <code>VertxDAO</code> and allow you to execute CRUD-operations asynchronously.
  */
-public abstract class VertxGenerator extends JavaGenerator {
+public abstract class VertxGenerator extends KotlinGenerator {
 
     private static final JooqLogger logger = JooqLogger.getLogger(VertxGenerator.class);
 
@@ -46,6 +47,10 @@ public abstract class VertxGenerator extends JavaGenerator {
     public VertxGenerator(boolean generateJson) {
         this.generateJson = generateJson;
         this.setGeneratePojos(true);
+    }
+
+    public String getJavaTypePublic(DataTypeDefinition type, JavaWriter out) {
+        return this.getJavaType(type, out);
     }
 
     /**
@@ -269,7 +274,7 @@ public abstract class VertxGenerator extends JavaGenerator {
         out.tab(1).println("public %s%s fromJson(io.vertx.core.json.JsonObject json) {", mode == GeneratorStrategy.Mode.INTERFACE?"default ":"",className);
         for (TypedElementDefinition<?> column : table.getColumns()) {
             String setter = getStrategy().getJavaSetterName(column, GeneratorStrategy.Mode.INTERFACE);
-            String columnType = getJavaType(column.getType());
+            String columnType = getJavaType(column.getType(), out);
             String javaMemberName = getJsonKeyName(column);
             String jsonValueExtractor = null;
             //converters are handled in ComponentBasedVertxGenerator
@@ -358,11 +363,6 @@ public abstract class VertxGenerator extends JavaGenerator {
         }
     }
 
-    @Override
-    public String getJavaType(DataTypeDefinition type) {
-        return super.getJavaType(type);
-    }
-
     private void generateToJson(TableDefinition table, JavaWriter out, GeneratorStrategy.Mode mode){
         out.println();
         out.tab(1).override();
@@ -370,7 +370,7 @@ public abstract class VertxGenerator extends JavaGenerator {
         out.tab(2).println("io.vertx.core.json.JsonObject json = new io.vertx.core.json.JsonObject();");
         for (TypedElementDefinition<?> column : table.getColumns()) {
             String getter = getStrategy().getJavaGetterName(column, GeneratorStrategy.Mode.INTERFACE);
-            String columnType = getJavaType(column.getType());
+            String columnType = getJavaType(column.getType(), out);
             if(handleCustomTypeToJson(column,getter,columnType, getJsonKeyName(column), out)) {
                 //handled by user
             }else if(isEnum(table,column)){
@@ -468,7 +468,7 @@ public abstract class VertxGenerator extends JavaGenerator {
         for (ColumnDefinition column : table.getColumns()) {
             final String colName = column.getOutputName();
             final String colClass = getStrategy().getJavaClassName(column);
-            final String colType = vOut.ref(getJavaType(column.getType()));
+            final String colType = vOut.ref(getJavaType(column.getType(), out));
             final String colIdentifier = vOut.ref(getStrategy().getFullJavaIdentifier(column), colRefSegments(column));
 
 
@@ -494,7 +494,7 @@ public abstract class VertxGenerator extends JavaGenerator {
                 }
                 final String colName = column.getOutputName();
                 final String colClass = getStrategy().getJavaClassName(column);
-                final String colType = vOut.ref(getJavaType(column.getType()));
+                final String colType = vOut.ref(getJavaType(column.getType(), out));
                 final String colIdentifier = vOut.ref(getStrategy().getFullJavaIdentifier(column), colRefSegments(column));
                 generateFindOneByMethods(out, pType, colName, colClass, colType, colIdentifier);
             }
@@ -529,20 +529,20 @@ public abstract class VertxGenerator extends JavaGenerator {
      * @param key
      * @return
      */
-    public String getKeyType(UniqueKeyDefinition key){
+    public String getKeyType(UniqueKeyDefinition key, JavaWriter out){
         String tType;
 
         List<ColumnDefinition> keyColumns = key.getKeyColumns();
 
         if (keyColumns.size() == 1) {
-            tType = getJavaType(keyColumns.get(0).getType());
+            tType = getJavaType(keyColumns.get(0).getType(), out);
         }
         else if (keyColumns.size() <= Constants.MAX_ROW_DEGREE) {
             String generics = "";
             String separator = "";
 
             for (ColumnDefinition column : keyColumns) {
-                generics += separator + (getJavaType(column.getType()));
+                generics += separator + (getJavaType(column.getType(), out));
                 separator = ", ";
             }
 
@@ -617,7 +617,7 @@ public abstract class VertxGenerator extends JavaGenerator {
 
         int maxLength = 0;
         for (TypedElementDefinition<?> column : getTypedElements(tableOrUDT))
-            maxLength = Math.max(maxLength, out.ref(getJavaType(column.getType(resolver(GeneratorStrategy.Mode.POJO)), GeneratorStrategy.Mode.POJO)).length());
+            maxLength = Math.max(maxLength, out.ref(getJavaType(column.getType(resolver(out, GeneratorStrategy.Mode.POJO)), out, GeneratorStrategy.Mode.POJO)).length());
 
         out.println("public class %s[[before= extends ][%s]][[before= implements ][%s]] {", className, list(superName), interfaces);
 
@@ -629,7 +629,7 @@ public abstract class VertxGenerator extends JavaGenerator {
         for (TypedElementDefinition<?> column : getTypedElements(tableOrUDT)) {
             out.tab(1).println("private %s%s %s;",
                     generateImmutablePojos() ? "final " : "",
-                    StringUtils.rightPad(out.ref(getJavaType(column.getType(resolver(GeneratorStrategy.Mode.POJO)), GeneratorStrategy.Mode.POJO)), maxLength),
+                    StringUtils.rightPad(out.ref(getJavaType(column.getType(resolver(out, GeneratorStrategy.Mode.POJO)), out, GeneratorStrategy.Mode.POJO)), maxLength),
                     getStrategy().getJavaMemberName(column, GeneratorStrategy.Mode.POJO));
         }
 
@@ -732,14 +732,14 @@ public abstract class VertxGenerator extends JavaGenerator {
         List<ColumnDefinition> keyColumns = key.getKeyColumns();
 
         if (keyColumns.size() == 1) {
-            tType = getJavaType(keyColumns.get(0).getType());
+            tType = getJavaType(keyColumns.get(0).getType(), out);
         }
         else if (keyColumns.size() <= Constants.MAX_ROW_DEGREE) {
             String generics = "";
             String separator = "";
 
             for (ColumnDefinition column : keyColumns) {
-                generics += separator + out.ref(getJavaType(column.getType()));
+                generics += separator + out.ref(getJavaType(column.getType(), out));
                 separator = ", ";
             }
 

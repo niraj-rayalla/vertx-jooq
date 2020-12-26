@@ -9,11 +9,12 @@ import org.jooq.meta.TypedElementDefinition;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by jensklingsporn on 08.02.18.
  */
-public class VertxGeneratorStrategy implements GeneratorStrategy {
+public abstract class VertxGeneratorStrategy implements GeneratorStrategy {
 
     private final GeneratorStrategy delegate;
 
@@ -44,6 +45,11 @@ public class VertxGeneratorStrategy implements GeneratorStrategy {
     }
 
     @Override
+    public String getGlobalReferencesJavaClassName(Definition definition, Class<? extends Definition> aClass) {
+        return delegate.getGlobalReferencesJavaClassName(definition, aClass);
+    }
+
+    @Override
     public String getFileName(Definition definition) {
         return delegate.getFileName(definition);
     }
@@ -56,6 +62,11 @@ public class VertxGeneratorStrategy implements GeneratorStrategy {
     @Override
     public File getFileRoot() {
         return delegate.getFileRoot();
+    }
+
+    @Override
+    public File getGlobalReferencesFile(Definition definition, Class<? extends Definition> aClass) {
+        return getGlobalReferencesFile(definition, aClass);
     }
 
     @Override
@@ -72,6 +83,12 @@ public class VertxGeneratorStrategy implements GeneratorStrategy {
     public File getFile(String fileName) {
         return delegate.getFile(fileName);
     }
+
+    @Override
+    public String getGlobalReferencesFileHeader(Definition definition, Class<? extends Definition> aClass) {
+        return getGlobalReferencesFileHeader(definition, aClass);
+    }
+
     @Override
     public String getFileHeader(Definition definition) {
         return delegate.getFileHeader(definition);
@@ -123,6 +140,12 @@ public class VertxGeneratorStrategy implements GeneratorStrategy {
     public String getFullJavaClassName(Definition definition, Mode mode) {
         return delegate.getFullJavaClassName(definition, mode);
     }
+
+    @Override
+    public String getGlobalReferencesFileName(Definition definition, Class<? extends Definition> aClass) {
+        return getGlobalReferencesFileName(definition, aClass);
+    }
+
     @Override
     public List<String> getJavaIdentifiers(Collection<? extends Definition> definitions) {
         return delegate.getJavaIdentifiers(definitions);
@@ -171,6 +194,17 @@ public class VertxGeneratorStrategy implements GeneratorStrategy {
     public void setTargetPackage(String packageName) {
         delegate.setTargetPackage(packageName);
     }
+
+    @Override
+    public Locale getTargetLocale() {
+        return delegate.getTargetLocale();
+    }
+
+    @Override
+    public void setTargetLocale(Locale locale) {
+        delegate.setTargetLocale(locale);
+    }
+
     @Override
     public String getFileHeader(Definition definition, Mode mode) {
         return delegate.getFileHeader(definition, mode);
@@ -191,14 +225,32 @@ public class VertxGeneratorStrategy implements GeneratorStrategy {
     public String getJavaMethodName(Definition definition, Mode mode) {
         return delegate.getJavaMethodName(definition, mode);
     }
+
+    @Override
+    public String getGlobalReferencesJavaClassExtends(Definition definition, Class<? extends Definition> aClass) {
+        return getGlobalReferencesJavaClassExtends(definition, aClass);
+    }
+
     @Override
     public String getJavaClassExtends(Definition definition, Mode mode) {
         return delegate.getJavaClassExtends(definition, mode);
     }
+
+    @Override
+    public List<String> getGlobalReferencesJavaClassImplements(Definition definition, Class<? extends Definition> aClass) {
+        return delegate.getGlobalReferencesJavaClassImplements(definition, aClass);
+    }
+
     @Override
     public String getJavaClassName(Definition definition, Mode mode) {
         return delegate.getJavaClassName(definition, mode);
     }
+
+    @Override
+    public String getGlobalReferencesJavaPackageName(Definition definition, Class<? extends Definition> aClass) {
+        return delegate.getGlobalReferencesJavaPackageName(definition, aClass);
+    }
+
     @Override
     public String getJavaPackageName(Definition definition, Mode mode) {
         return delegate.getJavaPackageName(definition, mode);
@@ -207,6 +259,12 @@ public class VertxGeneratorStrategy implements GeneratorStrategy {
     public String getJavaMemberName(Definition definition, Mode mode) {
         return delegate.getJavaMemberName(definition, mode);
     }
+
+    @Override
+    public String getGlobalReferencesFullJavaClassName(Definition definition, Class<? extends Definition> aClass) {
+        return delegate.getGlobalReferencesFullJavaClassName(definition, aClass);
+    }
+
     @Override
     public String getOverloadSuffix(Definition definition, Mode mode, String overloadIndex) {
         return delegate.getOverloadSuffix(definition, mode, overloadIndex);
