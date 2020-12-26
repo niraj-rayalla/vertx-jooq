@@ -64,7 +64,7 @@ public class VertxGeneratorStrategy implements GeneratorStrategy {
 
     @Override
     public File getGlobalReferencesFile(Definition definition, Class<? extends Definition> aClass) {
-        return getGlobalReferencesFile(definition, aClass);
+        return delegate.getGlobalReferencesFile(definition, aClass);
     }
 
     @Override
@@ -84,7 +84,7 @@ public class VertxGeneratorStrategy implements GeneratorStrategy {
 
     @Override
     public String getGlobalReferencesFileHeader(Definition definition, Class<? extends Definition> aClass) {
-        return getGlobalReferencesFileHeader(definition, aClass);
+        return delegate.getGlobalReferencesFileHeader(definition, aClass);
     }
 
     @Override
@@ -141,7 +141,7 @@ public class VertxGeneratorStrategy implements GeneratorStrategy {
 
     @Override
     public String getGlobalReferencesFileName(Definition definition, Class<? extends Definition> aClass) {
-        return getGlobalReferencesFileName(definition, aClass);
+        return delegate.getGlobalReferencesFileName(definition, aClass);
     }
 
     @Override
@@ -236,7 +236,7 @@ public class VertxGeneratorStrategy implements GeneratorStrategy {
 
     @Override
     public String getGlobalReferencesJavaClassExtends(Definition definition, Class<? extends Definition> aClass) {
-        return getGlobalReferencesJavaClassExtends(definition, aClass);
+        return delegate.getGlobalReferencesJavaClassExtends(definition, aClass);
     }
 
     @Override
