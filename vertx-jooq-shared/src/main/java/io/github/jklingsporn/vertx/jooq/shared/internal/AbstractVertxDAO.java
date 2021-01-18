@@ -45,11 +45,13 @@ public abstract class AbstractVertxDAO<R extends UpdatableRecord<R>, P, T, FIND_
         return this.queryExecutor;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public EXECUTE update(P object){
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public EXECUTE update(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, P object){
         Objects.requireNonNull(object);
-        return queryExecutor().execute(dslContext -> {
+        return queryExecutorToUse.execute(dslContext -> {
             R record = dslContext.newRecord(getTable(), object);
             Condition where = DSL.trueCondition();
             UniqueKey<R> pk = getTable().getPrimaryKey();
@@ -68,28 +70,74 @@ public abstract class AbstractVertxDAO<R extends UpdatableRecord<R>, P, T, FIND_
         });
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public EXECUTE update(P object){
+        return this.update(queryExecutor(), object);
+    }
+
     private Function<DSLContext,SelectConditionStep<R>> selectQuery(Condition condition) {
         return dslContext -> dslContext.selectFrom(getTable()).where(condition);
     }
 
-    @Override
-    public FIND_MANY findManyByCondition(Condition condition) {
-        return queryExecutor().findMany(selectQuery(condition));
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public FIND_MANY findManyByCondition(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, Condition condition) {
+        return queryExecutorToUse.findMany(selectQuery(condition));
     }
 
     @Override
-    public FIND_MANY findManyByCondition(Condition condition, int limit) {
+    public FIND_MANY findManyByCondition(Condition condition) {
+        return this.findManyByCondition(queryExecutor(), condition);
+    }
+
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public FIND_MANY findManyByCondition(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, Condition condition, int limit) {
         return queryExecutor().findMany(selectQuery(condition).andThen(sel -> sel.limit(limit)));
     }
 
     @Override
-    public FIND_MANY findManyByCondition(Condition condition, OrderField<?>... orderField) {
+    public FIND_MANY findManyByCondition(Condition condition, int limit) {
+        return this.findManyByCondition(queryExecutor(), condition, limit);
+    }
+
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public FIND_MANY findManyByCondition(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, Condition condition, OrderField<?>... orderField) {
         return queryExecutor().findMany(selectQuery(condition).andThen(sel->sel.orderBy(orderField)));
     }
 
     @Override
-    public FIND_MANY findManyByCondition(Condition condition, int limit, OrderField<?>... orderField) {
+    public FIND_MANY findManyByCondition(Condition condition, OrderField<?>... orderField) {
+        return this.findManyByCondition(queryExecutor(), condition, orderField);
+    }
+
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public FIND_MANY findManyByCondition(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, Condition condition, int limit, OrderField<?>... orderField) {
         return queryExecutor().findMany(selectQuery(condition).andThen(sel->sel.orderBy(orderField).limit(limit)));
+    }
+
+    @Override
+    public FIND_MANY findManyByCondition(Condition condition, int limit, OrderField<?>... orderField) {
+        return this.findManyByCondition(queryExecutor(), condition, limit, orderField);
+    }
+
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public FIND_MANY findManyByIds(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, Collection<T> ids){
+        return findManyByCondition(queryExecutorToUse, equalKeys(ids));
     }
 
     @Override
@@ -97,9 +145,25 @@ public abstract class AbstractVertxDAO<R extends UpdatableRecord<R>, P, T, FIND_
         return findManyByCondition(equalKeys(ids));
     }
 
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public FIND_MANY findAll(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse) {
+        return findManyByCondition(queryExecutorToUse, DSL.trueCondition());
+    }
+
     @Override
     public FIND_MANY findAll() {
         return findManyByCondition(DSL.trueCondition());
+    }
+
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public FIND_ONE findOneById(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, T id){
+        return findOneByCondition(queryExecutorToUse, equalKey(id));
     }
 
     @Override
@@ -107,14 +171,38 @@ public abstract class AbstractVertxDAO<R extends UpdatableRecord<R>, P, T, FIND_
         return findOneByCondition(equalKey(id));
     }
 
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public FIND_ONE findOneByCondition(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, Condition condition){
+        return queryExecutorToUse.findOne(dslContext -> dslContext.selectFrom(getTable()).where(condition));
+    }
+
     @Override
     public FIND_ONE findOneByCondition(Condition condition){
-        return queryExecutor().findOne(dslContext -> dslContext.selectFrom(getTable()).where(condition));
+        return this.findOneByCondition(queryExecutor(), condition);
+    }
+
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public EXECUTE deleteByCondition(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, Condition condition){
+        return queryExecutorToUse.execute(dslContext -> dslContext.deleteFrom(getTable()).where(condition));
     }
 
     @Override
     public EXECUTE deleteByCondition(Condition condition){
-        return queryExecutor().execute(dslContext -> dslContext.deleteFrom(getTable()).where(condition));
+        return this.deleteByCondition(queryExecutor(), condition);
+    }
+
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public EXECUTE deleteById(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, T id){
+        return deleteByCondition(queryExecutorToUse, equalKey(id));
     }
 
     @Override
@@ -122,9 +210,21 @@ public abstract class AbstractVertxDAO<R extends UpdatableRecord<R>, P, T, FIND_
         return deleteByCondition(equalKey(id));
     }
 
+    public EXECUTE deleteByIds(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, Collection<T> ids){
+        return deleteByCondition(queryExecutorToUse, equalKeys(ids));
+    }
+
     @Override
     public EXECUTE deleteByIds(Collection<T> ids){
         return deleteByCondition(equalKeys(ids));
+    }
+
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public EXECUTE insert(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, P pojo){
+        return insert(queryExecutorToUse, pojo,false);
     }
 
     @Override
@@ -132,13 +232,29 @@ public abstract class AbstractVertxDAO<R extends UpdatableRecord<R>, P, T, FIND_
         return insert(pojo,false);
     }
 
-    @Override
-    public EXECUTE insert(P pojo, boolean onDuplicateKeyIgnore) {
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public EXECUTE insert(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, P pojo, boolean onDuplicateKeyIgnore) {
         Objects.requireNonNull(pojo);
-        return queryExecutor().execute(dslContext -> {
+        return queryExecutorToUse.execute(dslContext -> {
             InsertSetMoreStep<R> insertStep = dslContext.insertInto(getTable()).set(newRecord(dslContext, pojo));
             return onDuplicateKeyIgnore?insertStep.onDuplicateKeyIgnore():insertStep;
         });
+    }
+
+    @Override
+    public EXECUTE insert(P pojo, boolean onDuplicateKeyIgnore) {
+        return this.insert(queryExecutor(), pojo, onDuplicateKeyIgnore);
+    }
+
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public EXECUTE insert(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, Collection<P> pojos){
+        return insert(queryExecutorToUse, pojos,false);
     }
 
     @Override
@@ -146,10 +262,13 @@ public abstract class AbstractVertxDAO<R extends UpdatableRecord<R>, P, T, FIND_
         return insert(pojos,false);
     }
 
-    @Override
-    public EXECUTE insert(Collection<P> pojos, boolean onDuplicateKeyIgnore) {
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public EXECUTE insert(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, Collection<P> pojos, boolean onDuplicateKeyIgnore) {
         Arguments.require(!pojos.isEmpty(), "No elements");
-        return queryExecutor().execute(dslContext -> {
+        return queryExecutorToUse.execute(dslContext -> {
             InsertSetStep<R> insertSetStep = dslContext.insertInto(getTable());
             InsertValuesStepN<R> insertValuesStepN = null;
             for (P pojo : pojos) {
@@ -157,6 +276,19 @@ public abstract class AbstractVertxDAO<R extends UpdatableRecord<R>, P, T, FIND_
             }
             return onDuplicateKeyIgnore?insertValuesStepN.onDuplicateKeyIgnore():insertValuesStepN;
         });
+    }
+
+    @Override
+    public EXECUTE insert(Collection<P> pojos, boolean onDuplicateKeyIgnore) {
+        return this.insert(queryExecutor(), pojos, onDuplicateKeyIgnore);
+    }
+
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public INSERT_RETURNING insertReturningPrimary(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, P object){
+        return this.insertReturningPrimary(queryExecutor(), object);
     }
 
     public INSERT_RETURNING insertReturningPrimary(P object){

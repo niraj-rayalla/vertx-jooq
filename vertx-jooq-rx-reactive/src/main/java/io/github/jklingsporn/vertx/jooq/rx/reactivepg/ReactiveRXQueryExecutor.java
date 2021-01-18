@@ -63,4 +63,18 @@ public class ReactiveRXQueryExecutor<R extends UpdatableRecord<R>,P,T> extends R
     public Single<ReactiveRXQueryExecutor<R,P,T>> beginTransaction() {
         return (Single<ReactiveRXQueryExecutor<R,P,T>>) super.beginTransaction();
     }
+
+    /**
+     * Use this for nested transactions for when a transaction connection has already been made, but you also want query executors
+     *  for a different table but still want to run queries on the transaction connection.
+     */
+    public ReactiveRXQueryExecutor<R, P, T> beginTransactionForExistingTransactionConnection(ReactiveRXGenericQueryExecutor otherQueryExecutor) throws Exception {
+        if(otherQueryExecutor.transaction != null && otherQueryExecutor.delegate instanceof SqlConnection){
+            //noinspection unchecked
+            return (ReactiveRXQueryExecutor<R, P, T>) newInstance((SqlConnection) otherQueryExecutor.delegate).apply(otherQueryExecutor.transaction);
+        }
+        else {
+            throw new IllegalStateException("Need to call this with a query executor with an active transaction");
+        }
+    }
 }

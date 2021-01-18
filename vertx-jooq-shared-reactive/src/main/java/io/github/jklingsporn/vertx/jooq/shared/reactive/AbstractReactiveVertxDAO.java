@@ -92,12 +92,20 @@ public abstract class AbstractReactiveVertxDAO<R extends UpdatableRecord<R>, P, 
         return this.keyConverter;
     }
 
-    @Override
-    public INSERT_RETURNING insertReturningPrimary(P object) {
-        return queryExecutor().insertReturning(dslContext -> dslContext
+    /**
+     * Use when a different QueryExecutor than the one in this DAO should be used. For example a QueryExecutor of a transaction.
+     * If you want to do this operation normally, call the method with the same name, but no QueryExecutor parameter.
+     */
+    public INSERT_RETURNING insertReturningPrimary(QueryExecutor<R, T, FIND_MANY, FIND_ONE, EXECUTE, INSERT_RETURNING> queryExecutorToUse, P object) {
+        return queryExecutorToUse.insertReturning(dslContext -> dslContext
                         .insertInto(getTable())
                         .set(newRecord(dslContext, object))
                         .returning(getTable().getPrimaryKey().getFieldsArray()),
                 keyConverter());
+    }
+
+    @Override
+    public INSERT_RETURNING insertReturningPrimary(P object) {
+        return this.insertReturningPrimary(queryExecutor(), object);
     }
 }
